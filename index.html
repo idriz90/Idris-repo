@@ -1495,15 +1495,25 @@ function mostraPdf(){
 
 async function stampaPdf(){
   var content=document.getElementById('pdfContent').innerHTML;
-  var css='<style>*{box-sizing:border-box}body{margin:0;padding:16px;font-family:Arial,sans-serif;font-size:14px;color:#111;line-height:1.5}</style>';
-  var html='<!DOCTYPE html><html><head><meta charset=UTF-8><meta name=viewport content=width=device-width,initial-scale=1>'+css+'</head><body>'+content+'</body></html>';
-  var w=window.open('','_blank','width=800,height=900');
-  if(!w){toast('Consenti i popup nel browser');return;}
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(function(){try{w.print();}catch(e){}},600);
+  var css='<style>*{box-sizing:border-box}body{margin:0;padding:16px;font-family:Arial,sans-serif;font-size:14px;color:#111;line-height:1.5}@media print{button{display:none!important}}</style>';
+  var html='<!DOCTYPE html><html><head><meta charset=UTF-8><meta name=viewport content=width=device-width,initial-scale=1>'+css+'</head><body>'+content+'<script>window.onload=function(){window.print();}<\/script></body></html>';
+  // Prova prima con Web Share API (mobile/moderno)
+  if(navigator.share){
+    try{
+      var blob=new Blob([html],{type:'text/html'});
+      var file=new File([blob],'preventivo.html',{type:'text/html'});
+      await navigator.share({title:'Preventivo',files:[file]});
+      return;
+    }catch(e){}
+  }
+  // Fallback: apri come Blob URL (nessun popup bloccato)
+  var blob=new Blob([html],{type:'text/html'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.target='_blank';
+  a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},10000);
 }
 
 
