@@ -336,7 +336,7 @@ body { background:#2D6A4F; font-family:var(--font); color:var(--text); min-heigh
         <div class="card-row"><input class="inp" type="text" placeholder="MM/AA"><input class="inp" type="text" placeholder="CVV"></div>
       </div></div>
       <div class="price-box"><div class="pr"><span>3 ore × 12€/h</span><span>36,00€</span></div><div class="pr"><span>Commissione (10%)</span><span>3,60€</span></div><div class="pr"><span style="color:var(--primary-light)">✨ Prima prenotazione</span><span style="color:var(--primary-light)">−3,60€</span></div><div class="pr tot"><span class="pr-lbl-big">Totale</span><span class="pr-val-big">36,00€</span></div></div>
-      <button class="btn btn-primary" onclick="goTo('screen-confirm')">🔒 Paga e prenota</button>
+      <button class="btn btn-primary" onclick="prenotaOra()">🔒 Paga e prenota</button>
       <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px;">Pagamento sicuro SSL · Cancellazione gratuita entro 2h</div>
     </div>
   </div>
@@ -562,6 +562,24 @@ function setStar(n) {
   document.querySelectorAll('.star-btn').forEach((s,i) => s.classList.toggle('lit', i < n));
 }
 
+async function prenotaOra() {
+  if (!window.currentUser) {
+    goTo('screen-login');
+    return;
+  }
+  const servizio = document.querySelector('.pill.on') ? document.querySelector('.pill.on').textContent.trim() : 'Ordinaria';
+  const data = document.querySelector('.ditem.on .dnum') ? document.querySelector('.ditem.on .dnum').textContent.trim() : '21';
+  const orario = document.querySelector('.titem.on') ? document.querySelector('.titem.on').textContent.trim() : '09:00';
+  window.ultimaPrenotazione = {
+    operatrice: 'Maria Esposito',
+    servizio, data, orario,
+    prezzo: 36.00,
+    stato: 'confermata'
+  };
+  if (window.salvaPrenotazione) await window.salvaPrenotazione(window.ultimaPrenotazione);
+  goTo('screen-confirm');
+}
+
 async function generateReview() {
   const input = document.getElementById('rev-input').value.trim();
   const out = document.getElementById('ai-rev-output');
@@ -635,7 +653,7 @@ function appendTyping() {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyCPPAm2IHxR4ZsSTOk_L-dAaoEGIB6VGS4",
@@ -667,7 +685,10 @@ function aggiornaProfilo(user) {
   setDoc(doc(db,'utenti',user.uid),{email:user.email,nome:name,uid:user.uid,aggiornato:new Date().toISOString()},{merge:true});
 }
 
-onAuthStateChanged(auth, aggiornaProfilo);
+onAuthStateChanged(auth, (user) => {
+  window.currentUser = user;
+  aggiornaProfilo(user);
+});
 
 function errIT(code) {
   return ({
@@ -701,6 +722,19 @@ window.loginGoogle = async () => {
   const err = document.getElementById('auth-error'); err.textContent = '';
   try { await signInWithPopup(auth,gProvider); goTo('screen-home'); } catch(e){err.textContent=errIT(e.code);}
 };
+window.salvaPrenotazione = async (prenotazione) => {
+  if (!window.currentUser) return;
+  try {
+    await addDoc(collection(db, 'prenotazioni'), {
+      ...prenotazione,
+      uid: window.currentUser.uid,
+      email: window.currentUser.email,
+      creata: new Date().toISOString()
+    });
+    console.log('Prenotazione salvata su Firestore ✅');
+  } catch(e) { console.error('Errore salvataggio:', e); }
+};
+
 window.logoutUser = async () => { await signOut(auth); goTo('screen-home'); };
 </script>
 </body>
