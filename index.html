@@ -524,7 +524,7 @@ input[type=range]{width:100%;accent-color:var(--blue)}
       <button class="modal-close" onclick="closeModal('ovPdf')">×</button>
     </div>
     <div id="pdfContent"></div>
-    <button class="btn btn-blue btn-full" style="margin-top:14px" onclick="window.print()">📤 Condividi / Stampa</button>
+    <button class="btn btn-blue btn-full" style="margin-top:14px" onclick="stampaPdf()">📤 Condividi / Stampa</button>
   </div>
 </div>
 
@@ -1494,88 +1494,15 @@ function mostraPdf(){
 }
 
 async function stampaPdf(){
-  const p=state.preventivi.find(x=>x.id===state.prevCorrente);
-  if(!p){toast('Preventivo non trovato');return;}
-  const t=calcolaTotale(p);
-  const logoHtml=LOGO_B64?('<img src="'+LOGO_B64+'" style="height:55px;width:auto;object-fit:contain">'):'';
-  const vociRows=(p.voci||[]).map(function(v){
-    return '<tr><td>'+(v.cat||'')+'</td><td style="font-weight:600">'+(v.desc||'')+'</td>'
-      +'<td style="text-align:center">'+(v.qty||1)+'</td><td style="text-align:center">'+(v.um||'')+'</td>'
-      +'<td style="text-align:right">\u20AC '+Number(v.prezzo||0).toFixed(2)+'</td>'
-      +'<td style="text-align:right;font-weight:700">\u20AC '+Number((v.prezzo||0)*(v.qty||1)).toFixed(2)+'</td></tr>';
-  }).join('');
-  const scontoRow=t.scontoEuro>0
-    ?'<div style="display:flex;justify-content:space-between;padding:4px 8px;color:#16a34a;font-weight:700;font-size:9pt"><span>Sconto '+p.sconto+'%</span><span>- \u20AC '+t.scontoEuro.toFixed(2)+'</span></div>'
-    :'';
-  const html='<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Preventivo '+(p.cliente||'')+'</title>'
-    +'<style>'
-    +'@page{margin:15mm;size:A4;margin-top:15mm;margin-bottom:15mm}'
-    +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#0f172a}'
-    +'.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a3c6e;padding-bottom:12px;margin-bottom:16px}'
-    +'.az-n{font-weight:800;font-size:13pt;color:#1a3c6e}.az-t{color:#2563eb;font-size:9pt;font-weight:700;margin-top:3px}'
-    +'.az-i{color:#555;font-size:8pt;margin-top:3px;line-height:1.6}.sec{margin-bottom:14px}'
-    +'.sec-t{font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#2563eb;border-bottom:1px solid #e2e8f0;padding-bottom:3px;margin-bottom:7px}'
-    +'table{width:100%;border-collapse:collapse;font-size:9pt}thead tr{background:#1a3c6e;color:white}'
-    +'thead th{padding:7px 8px;text-align:left;font-weight:700;font-size:8pt}tbody tr:nth-child(even){background:#eff6ff}'
-    +'tbody td{padding:6px 8px;border-bottom:1px solid #e2e8f0}'
-    +'.totali{margin-top:10px;margin-left:auto;width:230px}'
-    +'.tr{display:flex;justify-content:space-between;padding:4px 8px;font-size:9pt;color:#555}'
-    +'.tf{display:flex;justify-content:space-between;padding:8px;background:#1a3c6e;color:white;font-weight:800;font-size:12pt;margin-top:4px}'
-    +'.ftr{margin-top:20px;text-align:center;font-size:8pt;color:#aaa}'
-    +'</style></head><body>'
-    +'<div class="hdr"><div>'
-      +'<div class="az-n">SHIBA COSTRUZIONI <span style="font-size:11pt">s.a.s</span></div>'
-      +'<div class="az-t">'+AZIENDA.tagline+'</div>'
-      +'<div class="az-i">'+AZIENDA.indirizzo+'<br>'+AZIENDA.email+' &nbsp; '+AZIENDA.tel+'<br>'+AZIENDA.piva+'</div>'
-    +'</div>'+logoHtml+'</div>'
-    +'<div class="sec"><div class="sec-t">Cliente</div>'
-      +'<div style="font-size:12pt;font-weight:700">'+(p.cliente||'')+'</div>'
-      +(p.indirizzo?'<div style="font-size:9pt;color:#555;margin-top:2px">'+p.indirizzo+'</div>':'')
-      +((p.tel||p.email)?'<div style="font-size:9pt;color:#555">'+(p.tel||'')+(p.tel&&p.email?' &nbsp; ':'')+(p.email||'')+'</div>':'')
-    +'</div>'
-    +'<div class="sec"><div class="sec-t">Oggetto</div>'
-      +'<div style="font-size:11pt;font-weight:700">'+(p.descrizione||'')+'</div>'
-      +'<div style="font-size:8pt;color:#777;margin-top:3px">Data: '+fmtD(p.data)+(p.durata?' &nbsp; Durata stimata: '+p.durata+' giorni':'')+'</div>'
-    +'</div>'
-    +'<div class="sec"><div class="sec-t">Voci di lavoro</div>'
-      +'<table><thead><tr>'
-        +'<th style="width:18%">Categoria</th><th style="width:38%">Descrizione</th>'
-        +'<th style="width:8%;text-align:center">Qt\u00e0</th><th style="width:8%;text-align:center">U.M.</th>'
-        +'<th style="width:14%;text-align:right">Prezzo</th><th style="width:14%;text-align:right">Totale</th>'
-      +'</tr></thead><tbody>'+vociRows+'</tbody></table>'
-      +'<div class="totali">'+scontoRow
-        +'<div class="tr"><span>Imponibile</span><span>\u20AC '+t.imponibile.toFixed(2)+'</span></div>'
-        +'<div class="tr"><span>IVA '+(p.iva||22)+'%</span><span>\u20AC '+t.iva.toFixed(2)+'</span></div>'
-        +'<div class="tf"><span>TOTALE</span><span>\u20AC '+t.totIva.toFixed(2)+'</span></div>'
-      +'</div>'
-    +'</div>'
-    +'<div class="ftr">Preventivo valido 30 giorni</div>'
-    +'</body></html>';
-
-  const nomeFile='Preventivo_'+(p.cliente||'').replace(/\s+/g,'_')+'_'+(p.data||'')+'.html';
-
-  // Prova condivisione nativa (iOS/Android)
-  if(navigator.share){
-    try{
-      const blob=new Blob([html],{type:'text/html'});
-      const file=new File([blob],nomeFile,{type:'text/html'});
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        await navigator.share({title:'Preventivo '+(p.cliente||''),files:[file]});
-        return;
-      }
-      const url=URL.createObjectURL(blob);
-      await navigator.share({title:'Preventivo '+(p.cliente||''),url:url});
-      setTimeout(function(){URL.revokeObjectURL(url);},10000);
-      return;
-    }catch(e){if(e.name==='AbortError')return;}
-  }
-
-  // Fallback desktop
-  const w=window.open('','_blank','width=850,height=1100');
-  if(!w){toast('Abilita i popup per generare il PDF');return;}
-  w.document.write(html);w.document.close();w.focus();
-  setTimeout(function(){w.print();w.onafterprint=function(){w.close();};},400);
+  var content=document.getElementById('pdfContent').innerHTML;
+  var w=window.open('','_blank');
+  if(!w){toast('Abilita i popup per stampare');return;}
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:16px;font-family:Arial,sans-serif;font-size:14px}@media print{body{padding:0}}</style></head><body>'+content+'</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(function(){w.print();},400);
 }
+
 
 
 // ══════════════════════════════════════════════════════
