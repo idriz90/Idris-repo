@@ -1030,22 +1030,79 @@ textarea.inp { resize: none; font-family: var(--font-b); }
     </nav>
   </div>
 
+  <!-- LOGIN / PROFILO SCREEN -->
+  <div id="screen-login" class="screen" style="background:var(--surface);">
+    <div style="padding:52px 24px 0;">
+      <button class="back-btn" onclick="goTo('screen-home')">←</button>
+    </div>
+    <!-- Stato loggato -->
+    <div id="login-success" style="display:none; padding:0 24px; flex-direction:column; gap:16px;">
+      <div style="width:72px;height:72px;background:var(--primary);border-radius:24px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:32px;font-weight:800;color:#fff;" id="profile-initial">U</div>
+      <div style="font-family:var(--font-d);font-size:26px;font-weight:800;letter-spacing:-.5px;">Il tuo profilo</div>
+      <div style="background:var(--bg);border-radius:16px;padding:16px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Account</div>
+        <div style="font-size:15px;font-weight:600;" id="auth-status">—</div>
+      </div>
+      <div style="background:var(--primary-pale);border-radius:16px;padding:16px;display:flex;gap:12px;align-items:center;">
+        <span style="font-size:24px;">🏠</span>
+        <div><div style="font-family:var(--font-d);font-size:14px;font-weight:700;">Cura App</div><div style="font-size:12px;color:var(--text-muted);">Versione 2.0 · Firebase Auth attivo</div></div>
+      </div>
+      <button class="btn btn-primary" onclick="goTo('screen-home')" style="margin-top:8px;">🏠 Vai alla home</button>
+      <button class="btn btn-outline" id="btn-logout" onclick="logoutUser()" style="display:none;">🚪 Esci dall'account</button>
+    </div>
+
+    <!-- Form login/registrazione -->
+    <div style="padding:0 24px;flex:1;" id="login-form-area">
+      <div style="font-family:var(--font-d);font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;">Bentornato 👋</div>
+      <div style="color:var(--text-muted);font-size:14px;margin-bottom:28px;">Accedi o crea il tuo account Cura</div>
+
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Email</div>
+        <input class="inp" id="login-email" type="email" placeholder="la-tua@email.it">
+      </div>
+      <div style="margin-bottom:6px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Password</div>
+        <input class="inp" id="login-pass" type="password" placeholder="••••••••">
+      </div>
+
+      <div id="auth-error" style="color:var(--danger);font-size:13px;min-height:20px;margin-bottom:12px;font-weight:500;"></div>
+
+      <button class="btn btn-primary" id="btn-login-submit" onclick="loginEmail()" style="margin-bottom:8px;">Accedi</button>
+      <button class="btn btn-outline" id="btn-register-submit" onclick="registerEmail()" style="margin-bottom:16px;">Crea account</button>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:12px;color:var(--text-muted);">oppure</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+
+      <button class="btn btn-outline" id="btn-google" onclick="loginGoogle()" style="gap:10px;">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continua con Google
+      </button>
+
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:20px;line-height:1.6;">
+        Accedendo accetti i Termini di servizio e la Privacy Policy di Cura.
+      </div>
+    </div>
+  </div>
+
 </div><!-- /phone -->
 
-<script>
+<script type="module">
 // ─── NAVIGATION ───
 let currentMode = 'client';
 const clientScreens = ['screen-home','screen-booking','screen-confirm','screen-reviews','screen-chat'];
 const workerScreens = ['screen-worker-home'];
 
-function goTo(id) {
+window.goTo = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById(id);
   el.classList.add('active');
   el.style.display = 'flex';
 }
 
-function setMode(m) {
+window.setMode = function(m) {
   currentMode = m;
   document.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', (i===0 && m==='client')||(i===1 && m==='worker')));
   document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
@@ -1054,25 +1111,25 @@ function setMode(m) {
 }
 
 // ─── UI HELPERS ───
-function selChip(el) {
+window.selChip = function(el) {
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
   el.classList.add('sel');
 }
-function singlePill(el) {
+window.singlePill = function(el) {
   const g = el.closest('.pill-group');
   g.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
   el.classList.add('on');
 }
-function selDate(el) {
+window.selDate = function(el) {
   document.querySelectorAll('.ditem').forEach(d => d.classList.remove('on'));
   el.classList.add('on');
 }
-function selTime(el) {
+window.selTime = function(el) {
   if (el.classList.contains('na')) return;
   document.querySelectorAll('.titem').forEach(t => t.classList.remove('on'));
   el.classList.add('on');
 }
-function selPay(el) {
+window.selPay = function(el) {
   document.querySelectorAll('.pay-option').forEach(p => p.classList.remove('sel'));
   el.classList.add('sel');
   document.getElementById('card-inputs').style.display =
@@ -1080,7 +1137,7 @@ function selPay(el) {
 }
 
 // ─── WORKER TOGGLE ───
-function toggleWorkerStatus() {
+window.toggleWorkerStatus = function() {
   const t = document.getElementById('worker-toggle');
   const txt = document.getElementById('worker-status-txt');
   t.classList.toggle('off');
@@ -1088,26 +1145,26 @@ function toggleWorkerStatus() {
   else { txt.textContent = '🟢 Sei online'; txt.style.color = '#4ADE80'; }
 }
 
-function acceptReq(btn) {
+window.acceptReq = function(btn) {
   const card = btn.closest('.req-card');
   card.style.opacity = '0.5';
   card.style.pointerEvents = 'none';
   const acts = card.querySelector('.req-actions');
   acts.innerHTML = '<div style="color:#4ADE80;font-size:13px;font-weight:700;padding:10px 0;">✓ Richiesta accettata!</div>';
 }
-function declineReq(btn) {
+window.declineReq = function(btn) {
   btn.closest('.req-card').style.display = 'none';
 }
 
 // ─── STAR RATING ───
 let selectedStars = 5;
-function setStar(n) {
+window.setStar = function(n) {
   selectedStars = n;
   document.querySelectorAll('.star-btn').forEach((s,i) => s.classList.toggle('lit', i < n));
 }
 
 // ─── AI REVIEW GENERATOR ───
-async function generateReview() {
+window.generateReview = async function() {
   const input = document.getElementById('rev-input').value.trim();
   const out = document.getElementById('ai-rev-output');
   const pubBtn = document.getElementById('pub-rev-btn');
@@ -1149,7 +1206,7 @@ function typeText(el, text, cb) {
   }, 18);
 }
 
-function publishReview() {
+window.publishReview = function() {
   const text = document.getElementById('ai-rev-output').textContent;
   const newCard = document.createElement('div');
   newCard.className = 'rev-card';
@@ -1176,7 +1233,7 @@ Non inventare dati specifici di operatrici. Sii utile e guidalo verso la prenota
 
 let chatHistory = [];
 
-async function sendChat() {
+window.sendChat = async function() {
   const inp = document.getElementById('chat-inp');
   const msg = inp.value.trim();
   if (!msg) return;
@@ -1206,7 +1263,7 @@ async function sendChat() {
   }
 }
 
-function sendQR(text) {
+window.sendQR = function(text) {
   document.getElementById('chat-inp').value = text;
   sendChat();
 }
@@ -1232,8 +1289,106 @@ function appendTyping() {
   return d;
 }
 
-function handleKey(e) {
+window.handleKey = function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+// ─── FIREBASE AUTH ───
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCPPAm2IHxR4ZsSTOk_L-dAaoEGIB6VGS4",
+  authDomain: "cura-6d055.firebaseapp.com",
+  projectId: "cura-6d055",
+  storageBucket: "cura-6d055.firebasestorage.app",
+  messagingSenderId: "546057919940",
+  appId: "1:546057919940:web:7eddab331de4303260d891"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
+
+let currentUser = null;
+
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  const successEl = document.getElementById('login-success');
+  const formEl = document.getElementById('login-form-area');
+  if (user) {
+    const displayName = user.displayName || user.email.split('@')[0];
+    document.querySelectorAll('.hero-greeting').forEach(el => el.textContent = `Ciao, ${displayName} 👋`);
+    document.querySelectorAll('.topbar-avatar').forEach(el => {
+      el.textContent = displayName.charAt(0).toUpperCase();
+      el.style.background = 'var(--primary)';
+      el.style.color = '#fff';
+      el.style.fontWeight = '800';
+    });
+    document.getElementById('auth-status').textContent = user.email;
+    const pi = document.getElementById('profile-initial');
+    if (pi) pi.textContent = displayName.charAt(0).toUpperCase();
+    if (successEl) successEl.style.display = 'flex';
+    if (formEl) formEl.style.display = 'none';
+    document.getElementById('btn-logout').style.display = 'flex';
+  } else {
+    if (successEl) successEl.style.display = 'none';
+    if (formEl) formEl.style.display = 'block';
+    document.getElementById('btn-logout').style.display = 'none';
+  }
+});
+
+window.loginEmail = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Inserisci email e password.'; return; }
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    goTo('screen-home');
+  } catch(e) { errEl.textContent = tradErrore(e.code); }
+}
+
+window.registerEmail = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Inserisci email e password.'; return; }
+  if (pass.length < 6) { errEl.textContent = 'Password minimo 6 caratteri.'; return; }
+  try {
+    await createUserWithEmailAndPassword(auth, email, pass);
+    goTo('screen-home');
+  } catch(e) { errEl.textContent = tradErrore(e.code); }
+}
+
+window.loginGoogle = async function() {
+  const errEl = document.getElementById('auth-error');
+  errEl.textContent = '';
+  try {
+    await signInWithPopup(auth, googleProvider);
+    goTo('screen-home');
+  } catch(e) { errEl.textContent = tradErrore(e.code); }
+}
+
+window.logoutUser = async function() {
+  await signOut(auth);
+  goTo('screen-home');
+}
+
+function tradErrore(code) {
+  const map = {
+    'auth/user-not-found': 'Nessun account con questa email.',
+    'auth/wrong-password': 'Password errata.',
+    'auth/invalid-credential': 'Email o password non validi.',
+    'auth/email-already-in-use': 'Email già registrata. Accedi.',
+    'auth/invalid-email': 'Email non valida.',
+    'auth/weak-password': 'Password troppo debole.',
+    'auth/popup-closed-by-user': 'Accesso annullato.',
+    'auth/network-request-failed': 'Errore di rete.',
+  };
+  return map[code] || 'Errore: ' + code;
 }
 </script>
 </body>
